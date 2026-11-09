@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -67,11 +68,15 @@ public class HuaweiP2PManager {
     }
 
     public void registerService(HuaweiBaseP2PService service) {
-        for (HuaweiBaseP2PService svr : registeredServices) {
-            if (svr.getModule().equals(service.getModule())) {
-                LOG.error("P2P Service already registered, unregister: {}", service.getModule());
+        // A service is identified by its module (phone side) and package (watch side): several watch
+        // apps can talk to the same phone module (see HuaweiP2PWatchAppService).
+        final Iterator<HuaweiBaseP2PService> it = registeredServices.iterator();
+        while (it.hasNext()) {
+            final HuaweiBaseP2PService svr = it.next();
+            if (svr.getModule().equals(service.getModule()) && svr.getPackage().equals(service.getPackage())) {
+                LOG.error("P2P Service already registered, unregister: {} {}", service.getModule(), service.getPackage());
                 svr.unregister();
-                registeredServices.remove(svr);
+                it.remove();
             }
         }
         registeredServices.add(service);
@@ -81,6 +86,15 @@ public class HuaweiP2PManager {
     public HuaweiBaseP2PService getRegisteredService(String module) {
         for (HuaweiBaseP2PService svr : registeredServices) {
             if (svr.getModule().equals(module)) {
+                return svr;
+            }
+        }
+        return null;
+    }
+
+    public HuaweiBaseP2PService getRegisteredService(String module, String pkg) {
+        for (HuaweiBaseP2PService svr : registeredServices) {
+            if (svr.getModule().equals(module) && svr.getPackage().equals(pkg)) {
                 return svr;
             }
         }

@@ -185,6 +185,11 @@ public class HuaweiBRSupport extends AbstractBTBRDeviceSupport {
     }
 
     @Override
+    public void onSendWatchAppMessage(@NonNull final String appId, @NonNull final byte[] payload) {
+        supportProvider.onSendWatchAppMessage(appId, payload);
+    }
+
+    @Override
     public void onCameraStatusChange(GBDeviceEventCameraRemote.Event event, String filename) {
         supportProvider.onCameraStatusChange(event, filename);
     }

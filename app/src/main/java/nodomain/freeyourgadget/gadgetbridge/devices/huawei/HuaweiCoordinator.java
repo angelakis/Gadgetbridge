@@ -217,6 +217,12 @@ public abstract class HuaweiCoordinator extends AbstractDeviceCoordinator {
     }
 
     @Override
+    public boolean supportsWatchAppMessages(@NonNull final GBDevice device) {
+        // Messaging with your own watch apps over Wear Engine P2P (see HuaweiP2PWatchAppService)
+        return HuaweiDeviceStateManager.get(device).supportsP2PService();
+    }
+
+    @Override
     public boolean supportsInstalledAppManagement(@NonNull final GBDevice device) {
         return HuaweiDeviceStateManager.get(device).getSupportsInstalledAppManagement();
     }

@@ -25,6 +25,7 @@ import java.util.List;
 
 import nodomain.freeyourgadget.gadgetbridge.devices.huawei.HuaweiPacket;
 import nodomain.freeyourgadget.gadgetbridge.devices.huawei.packets.DeviceConfig;
+import nodomain.freeyourgadget.gadgetbridge.model.GenericItem;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.HuaweiSupportProvider;
 
 public class GetSecurityNegotiationRequest extends Request {
@@ -83,5 +84,11 @@ public class GetSecurityNegotiationRequest extends Request {
         this.authType = ((DeviceConfig.SecurityNegotiation.Response) receivedPacket).authType;
         this.honorPairType = ((DeviceConfig.SecurityNegotiation.Response) receivedPacket).honorPairType;
         this.responseNonce = ((DeviceConfig.SecurityNegotiation.Response) receivedPacket).responseNonce;
+
+        final String udid = ((DeviceConfig.SecurityNegotiation.Response) receivedPacket).udid;
+        if (udid != null) {
+            // Shown in the device info, so it can be copied into a Huawei debug profile
+            getDevice().addDeviceInfo(new GenericItem("UDID: ", udid));
+        }
     }
 }

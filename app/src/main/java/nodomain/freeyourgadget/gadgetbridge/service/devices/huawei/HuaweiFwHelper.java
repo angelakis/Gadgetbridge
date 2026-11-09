@@ -42,6 +42,7 @@ import nodomain.freeyourgadget.gadgetbridge.devices.huawei.ota.HuaweiOTAFileList
 import nodomain.freeyourgadget.gadgetbridge.devices.huawei.packets.FileUpload;
 import nodomain.freeyourgadget.gadgetbridge.util.GB;
 import nodomain.freeyourgadget.gadgetbridge.util.GBZipFile;
+import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.p2p.HuaweiP2PWatchAppService;
 import nodomain.freeyourgadget.gadgetbridge.util.UriHelper;
 import nodomain.freeyourgadget.gadgetbridge.util.ZipFileException;
 import nodomain.freeyourgadget.gadgetbridge.util.audio.AudioInfo;
@@ -60,6 +61,9 @@ public class HuaweiFwHelper {
     Bitmap previewBitmap;
     HuaweiWatchfaceManager.WatchfaceDescription watchfaceDescription;
     HuaweiAppManager.AppConfig appConfig;
+    // Package and P2P identity of a signed third-party watch app, null if not available
+    String appPackageName;
+    String appP2PFingerprint;
     AudioInfo musicInfo;
     Context mContext;
 
@@ -280,6 +284,8 @@ public class HuaweiFwHelper {
                 return false;
             appConfig = new HuaweiAppManager.AppConfig(new String(config));
             fileName = app.getPackageName() + "_INSTALL"; //TODO: INSTALL or UPDATE suffix
+            appPackageName = app.getPackageName();
+            appP2PFingerprint = HuaweiP2PWatchAppService.fingerprintFromBin(appData, appPackageName);
 
             fw = appData;
 
@@ -405,6 +411,14 @@ public class HuaweiFwHelper {
 
     public HuaweiAppManager.AppConfig getAppConfig() {
         return appConfig;
+    }
+
+    public String getAppPackageName() {
+        return appPackageName;
+    }
+
+    public String getAppP2PFingerprint() {
+        return appP2PFingerprint;
     }
 
     public AudioInfo getMusicInfo() {

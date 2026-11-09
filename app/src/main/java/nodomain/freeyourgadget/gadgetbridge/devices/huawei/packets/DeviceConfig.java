@@ -1915,6 +1915,9 @@ public class DeviceConfig {
             // auth path; -1 means the watch omitted it. Observed from the pairing capture.
             public int honorPairType = -1;
             public byte[] responseNonce;
+            // Tag 0x05: the watch's UDID as 64 ASCII hex characters. It identifies the watch
+            // in a Huawei debug profile, which is needed to sign your own watch apps.
+            public String udid;
 
             public Response(ParamsProvider paramsProvider) {
                 super(paramsProvider);
@@ -1945,6 +1948,11 @@ public class DeviceConfig {
                     this.authType = (int)this.tlv.getByte(0x7F);
                 if (this.tlv.contains(0x03))
                     this.responseNonce = this.tlv.getBytes(0x03);
+                if (this.tlv.contains(0x05)) {
+                    final byte[] udidBytes = this.tlv.getBytes(0x05);
+                    if (udidBytes.length == 64)
+                        this.udid = new String(udidBytes, java.nio.charset.StandardCharsets.US_ASCII);
+                }
             }
         }
     }

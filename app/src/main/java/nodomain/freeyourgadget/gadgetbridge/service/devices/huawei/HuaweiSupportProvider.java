@@ -149,6 +149,7 @@ import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.p2p.HuaweiP2P
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.p2p.HuaweiP2PFitnessData;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.p2p.HuaweiP2PMapkitService;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.p2p.HuaweiP2PTrackService;
+import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.p2p.HuaweiP2PWatchAppService;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.p2p.HuaweiP2PDataDictionarySyncService;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.p2p.dictionarysync.HuaweiDictionarySyncInterface;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.requests.AcceptAgreementsRequest;
@@ -1194,6 +1195,9 @@ public class HuaweiSupportProvider {
                             HuaweiP2PBatteryService batteryService = new HuaweiP2PBatteryService(huaweiP2PManager);
                             batteryService.register();
                         }
+
+                        // Third-party watch apps installed through Gadgetbridge
+                        HuaweiP2PWatchAppService.registerKnownApps(huaweiP2PManager);
                     }
                 }
             });
@@ -2625,6 +2629,11 @@ public class HuaweiSupportProvider {
             getHuaweiMusicManager().addUploadMusic(huaweiFwHelper.getMusicInfo());
         }
 
+        if (huaweiFwHelper.isAPP() && huaweiFwHelper.getAppP2PFingerprint() != null && getDeviceState().supportsP2PService()) {
+            // A signed third-party app: remember its identity so it can exchange messages with the phone
+            HuaweiP2PWatchAppService.rememberApp(huaweiP2PManager, huaweiFwHelper.getAppPackageName(), huaweiFwHelper.getAppP2PFingerprint());
+        }
+
         fileInfo.setFileType(huaweiFwHelper.getFileType());
         if (huaweiFwHelper.isWatchface()) {
             fileInfo.setFileName(huaweiWatchfaceManager.getRandomName());
@@ -2752,6 +2761,16 @@ public class HuaweiSupportProvider {
         if (!huaweiAppManager.deleteApp(uuid)) {
             huaweiWatchfaceManager.deleteWatchface(uuid);
         }
+    }
+
+    public void onSendWatchAppMessage(final String appId, final byte[] payload) {
+        // appId is the package of a watch app installed through Gadgetbridge
+        final HuaweiP2PWatchAppService service = HuaweiP2PWatchAppService.getRegisteredInstance(huaweiP2PManager, appId);
+        if (service == null) {
+            LOG.warn("No messaging for watch app {}: install it through Gadgetbridge first", appId);
+            return;
+        }
+        service.sendMessage(payload);
     }
 
     public void onCameraStatusChange(GBDeviceEventCameraRemote.Event event, String filename) {
